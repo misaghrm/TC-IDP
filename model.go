@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"encoding/json"
 	"strings"
 	//"tc-micro-idp/utils"
@@ -46,13 +47,6 @@ func (BlockedPhone) TableName() string {
 	return "BlockedPhones"
 }
 
-type Base struct {
-	Id           int64     //`gorm:"column:Id"`
-	CreationTime time.Time `gorm:"column:CreationTime"`
-	ModifyTime   time.Time `gorm:"column:ModifyTime"`
-	//References:FK_UserLikes_Users_UserId,FK_UserRoles_Users_UserId,FK_UserRoles_Users_UserId,FK_InboxItems_Users_UserId,FK_OtpAttempts_Users_UserId,FK_RefreshTokens_Users_UserId,FK_UserCities_Users_UserId
-}
-
 type Client struct {
 	Id                       int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime             time.Time `gorm:"column:CreationTime"`
@@ -81,20 +75,20 @@ func (Client) TableName() string {
 }
 
 type OtpAttempt struct {
-	Id           int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
-	CreationTime time.Time `gorm:"column:CreationTime"`
-	ModifyTime   time.Time `gorm:"column:ModifyTime"`
-	User         User
-	Phone        string `gorm:"column:Phone"`
-	UserId       int64  `gorm:"column:UserId"`
-	ClientId     int64  `gorm:"column:ClientId"`
-	Client       Client
-	Salt         string    `gorm:"column:Salt"`
-	IssueTime    time.Time `gorm:"column:IssueTime"`
-	ExpireTime   time.Time `gorm:"column:ExpireTime"`
-	UserIp       string    `gorm:"column:UserIp"`
-	UserAgent    string    `gorm:"column:UserAgent"`
-	OtpKind      Kind      `gorm:"column:Kind"`
+	Id           int64         `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
+	CreationTime time.Time     `gorm:"column:CreationTime"`
+	ModifyTime   *time.Time    `gorm:"column:ModifyTime"`
+	UserId       sql.NullInt64 `gorm:"column:UserId"`
+	User         *User         `gorm:"foreignKey:UserId"`
+	Phone        string        `gorm:"column:Phone"`
+	ClientId     int64         `gorm:"column:ClientId"`
+	Client       Client        `gorm:"foreignKey:ClientId"`
+	Salt         string        `gorm:"column:Salt"`
+	IssueTime    time.Time     `gorm:"column:IssueTime"`
+	ExpireTime   time.Time     `gorm:"column:ExpireTime"`
+	UserIp       string        `gorm:"column:UserIp"`
+	UserAgent    string        `gorm:"column:UserAgent"`
+	OtpKind      Kind          `gorm:"column:Kind"`
 }
 
 func (OtpAttempt) TableName() string {
@@ -103,14 +97,14 @@ func (OtpAttempt) TableName() string {
 
 type Kind byte
 
-var otpKinds = []string{"Register", "Login"}
+var OtpKinds = []string{"Register", "Login"}
 
 func (k Kind) String() string {
 	switch k {
 	case 2:
-		return otpKinds[0]
+		return OtpKinds[0]
 	case 4:
-		return otpKinds[1]
+		return OtpKinds[1]
 	default:
 		return ""
 	}
@@ -137,27 +131,10 @@ func (appsource AppSource) String() string {
 	}
 }
 
-//type TokenClaims struct {
-//	TokenId        interface{}   `json:"jti"`
-//	IssuedAt       interface{}   `json:"iat"`
-//	UserId         string        `json:"nameid"`
-//	Phone          string        `json:"unique_name"`
-//	RefreshVersion interface{}   `json:"bmn:refv"`
-//	EulaVersion    interface{}   `json:"bmn:eulav"`
-//	Issuer         string        `json:"iss"`
-//	LifeTime       string        `json:"bmn:tlt"`
-//	AccessVersion  string        `json:"bmn:accv"`
-//	DeviceId       string        `json:"bmn:dvid"`
-//	AppSource      string        `json:"bmn:aps"`
-//	Roles          []interface{} `json:"http://schemas.microsoft.com/ws/2008/06/identity/claims/role"`
-//	Audience       string        `json:"aud"`
-//	Expires        interface{}   `json:"exp"`
-//	NotBefore      interface{}   `json:"nbf"`
-//}
-
 func (TokenClaim) TableName() string {
 	return "TokenClaims"
 }
+
 func GetJson(a *TokenClaim) (payload []byte) {
 	payload, _ = json.Marshal(a)
 	return
@@ -183,7 +160,7 @@ func (UserRole) TableName() string {
 type Role struct {
 	Id           int64      `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime time.Time  `gorm:"column:CreationTime"`
-	ModifyTime   time.Time  `gorm:"column:ModifyTime"`
+	ModifyTime   *time.Time `gorm:"column:ModifyTime"`
 	UserRoles    []UserRole //`gorm:"many2many:UserRoles;"`
 	Name         string     `gorm:"column:Name;" ;json:"name"`
 	Title        string     `gorm:"column:Title;" ;json:"title"`
@@ -198,13 +175,13 @@ func (Role) TableName() string {
 type User struct {
 	Id            int64          `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime  time.Time      `gorm:"column:CreationTime"`
-	ModifyTime    time.Time      `gorm:"column:ModifyTime"`
+	ModifyTime    *time.Time     `gorm:"column:ModifyTime"`
 	PhoneNumber   string         `gorm:"column:PhoneNumber;type:bpchar(10);" ;json:"phoneNumber"`
 	UserProfileId int64          `gorm:"column:UserProfileId" ;json:"userProfileId"`
 	LastLoginTime time.Time      `gorm:"column:LastLoginTime" ;json:"lastLoginTime"`
 	UserRoles     []UserRole     //`gorm:"many2many:UserRoles;"`
 	RefreshTokens []RefreshToken //`gorm:"many2many:RefreshTokens" ;json:"refreshTokens"`
-	OtpAttempts   []OtpAttempt   //`gorm:"many2many:OtpAttempts" ;json:"otpAttempts"`
+	OtpAttempts   []*OtpAttempt  //`gorm:"many2many:OtpAttempts" ;json:"otpAttempts"`
 	UserCity      UserCity       //`gorm:"foreignKey:FK_UserCities_Users_UserId"`
 }
 
@@ -213,13 +190,13 @@ func (User) TableName() string {
 }
 
 type RefreshToken struct {
-	Id           int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id;"`
-	CreationTime time.Time `gorm:"column:CreationTime"`
-	ModifyTime   time.Time `gorm:"column:ModifyTime"`
-	UserId       int64     `gorm:"column:UserId" ;json:"userId"`
-	User         User      //`gorm:"ForeignKey:FK_RefreshTokens_Users_UserId"`
-	ClientId     int64     `gorm:"column:ClientId" ;json:"clientId"`
-	Client       Client
+	Id           int64         `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id;"`
+	CreationTime time.Time     `gorm:"column:CreationTime"`
+	ModifyTime   time.Time     `gorm:"column:ModifyTime"`
+	UserId       int64         `gorm:"column:UserId" ;json:"userId"`
+	User         User          `gorm:"foreignKey:UserId"`
+	ClientId     int64         `gorm:"column:ClientId" ;json:"clientId"`
+	Client       Client        `gorm:"foreignKey:ClientId"`
 	Token        string        `gorm:"column:Token" ;json:"token"`
 	IssueTime    time.Time     `gorm:"column:IssueTime" ;json:"issueTime"`
 	ExpireTime   time.Time     `gorm:"column:ExpireTime" ;json:"expireTime"`
@@ -227,7 +204,7 @@ type RefreshToken struct {
 	DeviceId     int64         `gorm:"column:DeviceId" ;json:"deviceId"`
 	Device       Device        `gorm:"foreignKey:DeviceId"`
 	IsRevoked    bool          `gorm:"column:IsRevoked" ;json:"isRevoked"`
-	RevokeTime   time.Time     `gorm:"column:RevokeTime" ;json:"revokeTime"`
+	RevokeTime   *time.Time    `gorm:"column:RevokeTime" ;json:"revokeTime"`
 }
 
 func (RefreshToken) TableName() string {
@@ -235,16 +212,16 @@ func (RefreshToken) TableName() string {
 }
 
 type AccessToken struct {
-	Id             int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
-	CreationTime   time.Time `gorm:"column:CreationTime"`
-	ModifyTime     time.Time `gorm:"column:ModifyTime"`
-	RefreshTokenId int64     `gorm:"column:RefreshTokenId" ;json:"refreshTokenId"`
-	RefreshToken   RefreshToken
-	Token          string    `gorm:"column:Token" ;json:"token"`
-	IssueTime      time.Time `gorm:"column:IssueTime" ;json:"issueTime"`
-	ExpireTime     time.Time `gorm:"column:ExpireTime" ;json:"expireTime"`
-	IsRevoked      bool      `gorm:"column:IsRevoked" ;json:"isRevoked"`
-	RevokeTime     time.Time `gorm:"column:RevokeTime" ;json:"revokeTime"`
+	Id             int64        `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
+	CreationTime   time.Time    `gorm:"column:CreationTime"`
+	ModifyTime     *time.Time   `gorm:"column:ModifyTime"`
+	RefreshTokenId int64        `gorm:"column:RefreshTokenId" ;json:"refreshTokenId"`
+	RefreshToken   RefreshToken `gorm:"foreignKey:RefreshTokenId"`
+	Token          string       `gorm:"column:Token" ;json:"token"`
+	IssueTime      time.Time    `gorm:"column:IssueTime" ;json:"issueTime"`
+	ExpireTime     time.Time    `gorm:"column:ExpireTime" ;json:"expireTime"`
+	IsRevoked      bool         `gorm:"column:IsRevoked" ;json:"isRevoked"`
+	RevokeTime     *time.Time   `gorm:"column:RevokeTime" ;json:"revokeTime"`
 }
 
 func (AccessToken) TableName() string {
@@ -254,7 +231,7 @@ func (AccessToken) TableName() string {
 type Device struct {
 	Id             int64          `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime   time.Time      `gorm:"column:CreationTime"`
-	ModifyTime     time.Time      `gorm:"column:ModifyTime"`
+	ModifyTime     *time.Time     `gorm:"column:ModifyTime"`
 	RefreshTokenId int64          `gorm:"column:RefreshTokenId" ;json:"RefreshTokenId"`
 	RefreshToken   []RefreshToken `gorm:"foreignKey:Id"`
 	UserIp         string         `gorm:"column:UserIp" ;json:"userIp"`
@@ -275,23 +252,23 @@ func (Device) TableName() string {
 }
 
 type UserProfile struct {
-	Id                 int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
-	CreationTime       time.Time `gorm:"column:CreationTime"`
-	ModifyTime         time.Time `gorm:"column:ModifyTime"`
-	UserId             int64     `gorm:"column:UserId"`
-	User               User
-	FirstName          string    `gorm:"column:FirstName"`
-	LastName           string    `gorm:"column:LastName"`
-	Gender             Gender    `gorm:"column:Gender"`
-	BirthDate          time.Time `gorm:"column:BirthDate"`
-	JobTitle           string    `gorm:"column:JobTitle"`
-	Email              string    `gorm:"column:Email"`
-	ProfileImageFileId int64     `gorm:"column:ProfileImageFileId"`
-	InviteCode         string    `gorm:"column:InviteCode"`
-	Address            string    `gorm:"column:Address"`
-	PostalCode         string    `gorm:"column:PostalCode"`
-	Latitude           float64   `gorm:"column:Latitude"`
-	Longitude          float64   `gorm:"column:Longitude"`
+	Id                 int64      `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
+	CreationTime       time.Time  `gorm:"column:CreationTime"`
+	ModifyTime         *time.Time `gorm:"column:ModifyTime"`
+	UserId             int64      `gorm:"column:UserId"`
+	User               User       `gorm:"foreignKey:UserId"`
+	FirstName          string     `gorm:"column:FirstName"`
+	LastName           string     `gorm:"column:LastName"`
+	Gender             Gender     `gorm:"column:Gender"`
+	BirthDate          *time.Time `gorm:"column:BirthDate"`
+	JobTitle           string     `gorm:"column:JobTitle"`
+	Email              string     `gorm:"column:Email"`
+	ProfileImageFileId int64      `gorm:"column:ProfileImageFileId"`
+	InviteCode         string     `gorm:"column:InviteCode"`
+	Address            string     `gorm:"column:Address"`
+	PostalCode         string     `gorm:"column:PostalCode"`
+	Latitude           float64    `gorm:"column:Latitude"`
+	Longitude          float64    `gorm:"column:Longitude"`
 }
 
 func (UserProfile) TableName() string {
@@ -313,25 +290,19 @@ func (g Gender) String() string {
 	}
 }
 
-type SendOtpModel struct {
-	Type       int64             `json:"type"`
-	Recipient  string            `json:"recipient"`
-	Parameters map[string]string `json:"parameters"`
-}
-
 type UsedInviteCode struct {
-	InviterUserId               int64     `gorm:"column:InviterUserId"`
-	RequestDate                 time.Time `gorm:"column:RequestDate"`
-	InvitedPhoneNumber          string    `gorm:"column:InvitedPhoneNumber"`
-	InvitedUserId               int64     `gorm:"column:InvitedUserId"`
-	VerifyDate                  time.Time `gorm:"column:VerifyDate"`
-	IsVerified                  bool      `gorm:"column:IsVerified"`
-	InvitedFirstPurchaseMade    bool      `gorm:"column:InvitedFirstPurchaseMade"`
-	InvitedFirstInvoiceId       int64     `gorm:"column:InvitedFirstInvoiceId"`
-	InvitedFirstPurchaseTimeUtc time.Time `gorm:"column:InvitedFirstPurchaseTimeUtc"`
-	InviterBonusSent            bool      `gorm:"column:InviterBonusSent"`
-	InviterBonusSentAmount      float64   `gorm:"column:InviterBonusSentAmount"`
-	InviterBonusSentTimeUtc     time.Time `gorm:"column:InviterBonusSentTimeUtc"`
+	InviterUserId               int64      `gorm:"column:InviterUserId"`
+	RequestDate                 time.Time  `gorm:"column:RequestDate"`
+	InvitedPhoneNumber          string     `gorm:"column:InvitedPhoneNumber"`
+	InvitedUserId               int64      `gorm:"column:InvitedUserId"`
+	VerifyDate                  *time.Time `gorm:"column:VerifyDate"`
+	IsVerified                  bool       `gorm:"column:IsVerified"`
+	InvitedFirstPurchaseMade    bool       `gorm:"column:InvitedFirstPurchaseMade"`
+	InvitedFirstInvoiceId       int64      `gorm:"column:InvitedFirstInvoiceId"`
+	InvitedFirstPurchaseTimeUtc *time.Time `gorm:"column:InvitedFirstPurchaseTimeUtc"`
+	InviterBonusSent            bool       `gorm:"column:InviterBonusSent"`
+	InviterBonusSentAmount      float64    `gorm:"column:InviterBonusSentAmount"`
+	InviterBonusSentTimeUtc     *time.Time `gorm:"column:InviterBonusSentTimeUtc"`
 }
 
 func (UsedInviteCode) TableName() string {
@@ -339,11 +310,11 @@ func (UsedInviteCode) TableName() string {
 }
 
 type UserCity struct {
-	Id           int64     `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
-	CreationTime time.Time `gorm:"column:CreationTime"`
-	ModifyTime   time.Time `gorm:"column:ModifyTime"`
-	UserId       int64     `gorm:"primaryKey;autoIncrement:false;column:UserId;"`
-	CityId       int64     `gorm:"primaryKey;autoIncrement:false;column:CityId"`
+	Id           int64      `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
+	CreationTime time.Time  `gorm:"column:CreationTime"`
+	ModifyTime   *time.Time `gorm:"column:ModifyTime"`
+	UserId       int64      `gorm:"primaryKey;autoIncrement:false;column:UserId;"`
+	CityId       int64      `gorm:"primaryKey;autoIncrement:false;column:CityId"`
 }
 
 func (UserCity) TableName() string {
