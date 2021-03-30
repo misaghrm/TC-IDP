@@ -7,13 +7,14 @@ import (
 
 const KavehNegarAPIKEY = "39576370486C516C583565504B6B566A556E62344E6563474D3070386F4A4D46325A68644E7A6B594D52453D"
 
-func SendOtpCode (Phone string,OtpCode string,AppSignatureHash string){
+func SendOtpCode(Phone string, OtpCode string, AppSignatureHash string) {
 	api := kavenegar.New(KavehNegarAPIKEY)
 
 	params := &kavenegar.VerifyLookupParam{
-		Type:   0,
+		Type: kavenegar.Type_VerifyLookup_Sms,
 	}
-	if res, err := api.Verify.Lookup(Phone, "verify", OtpCode, params); err != nil {
+	log.Println("Kavehnegar 1 ")
+	if res, err := api.Verify.Lookup("0"+Phone, "verify", OtpCode, params); err != nil {
 		switch err := err.(type) {
 		case *kavenegar.APIError:
 			log.Println(err.Error())
@@ -27,10 +28,9 @@ func SendOtpCode (Phone string,OtpCode string,AppSignatureHash string){
 		log.Println("Status    	= ", res.Status)
 		//...
 	}
-
+	log.Println("Kavehnegar 2 ")
 
 }
-
 
 //func SendOtpCode (Phone string,OtpCode string,AppSignatureHash string) {
 //	//var c []*models.ParamaterMessage

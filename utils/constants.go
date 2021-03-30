@@ -24,7 +24,9 @@ const (
 	PanelPartner       = "panel-partner"
 	PanelPartnerIndex  = 8
 	Clients            = "Clients"
-	UserAgent = "User-Agent"
+	UserAgent          = "User-Agent"
+	OtpId              = "otpId"
+	ClientID           = "ClientID"
 
 	PgUrlDev   = "host=10.1.10.69 user=m_ramezani password=S7B-C=aUzt7h@HCv dbname=auth port=54327 sslmode=disable"
 	PgUrlTest  = "host=10.1.10.59 user=m_ramezani password=j3cNeRarL72?D$nd*X%Z dbname=auth port=54327 sslmode=disable"
@@ -39,13 +41,13 @@ const (
 	TokenVersion  = "bmn:tv"
 	Authorization = "Authorization"
 	BlockedPhones = "BlockedPhones"
-	MNXClient     = "MNX-Client"
+	ClientKey     = "client-key"
 	OtpAttempts   = "OtpAttempts"
 	Users         = "Users"
 	UserRoles     = "UserRoles"
 	Roles         = "Roles"
 	XScopeToken   = "X-Scope-Token"
-	IssuerHeader  = "bmn:iss"
+	IssuerHeader  = "tc:iss"
 
 	DomainProd = "https://napi.tazminchi.com/"
 	DomainDev  = "https://dev.api.baman.club/"

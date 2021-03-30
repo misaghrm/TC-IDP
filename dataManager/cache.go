@@ -31,12 +31,12 @@ func init() {
 	//SetEntities()
 }
 
-func SetClientTable(Table []*models.Client) (ok bool) {
+func SetClientTable(Table []models.Client) (ok bool) {
 	ok = Cache.SetWithTTL(ClientTable, Table, 0, 24*time.Hour)
 	return
 }
 
-func GetClientsTable() (Table []*models.Client, ok bool) {
+func GetClientsTable() (Table []models.Client, ok bool) {
 
 	var table interface{}
 	table, ok = Cache.Get(ClientTable)
@@ -44,22 +44,23 @@ func GetClientsTable() (Table []*models.Client, ok bool) {
 		ok = SetClientTable(getClientsTable())
 		GetClientsTable()
 	}
-	log.Println(table)
-	return table.([]*models.Client), ok
+	log.Println("Client Table:", table)
+	Table = table.([]models.Client)
+	return
 }
 
-func CanRegister(TcClient string) bool {
+func CanRegister(TcClient string) (bool, int64) {
 	table := FindClient(TcClient)
-	if table == nil {
-		return false
+	if TcClient != table.Issuer {
+		return false, 0
 	}
-	return table.CanRegister
+	return table.CanRegister, table.Id
 }
 
-func CanLogin(TcClient string) (ClientTable *models.Client,ok bool) {
+func CanLogin(TcClient string) (ClientTable models.Client, ok bool) {
 	ClientTable = FindClient(TcClient)
-	if ClientTable == nil {
-		return nil,false
+	if ClientTable.Id == 0 {
+		return ClientTable, false
 	}
 	return ClientTable, ClientTable.CanLogin
 }

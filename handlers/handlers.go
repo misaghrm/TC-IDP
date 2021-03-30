@@ -16,7 +16,7 @@ func init() {
 }
 
 func TestToken(c *fiber.Ctx) error {
-	_, err := jwt.Decrypt(ExtractToken(c), c.Get(MNXClient))
+	_, err := jwt.Decrypt(ExtractToken(c), c.Get(ClientKey))
 	if err != nil {
 		return c.SendStatus(http.StatusUnauthorized)
 	}

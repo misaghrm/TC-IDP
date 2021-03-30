@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	jose "github.com/dvsekhvalnov/jose2go"
+	"time"
+
 	//"golang.org/x/oauth2/jwt"
 	"log"
 	db "tc-micro-idp/dataManager"
@@ -11,10 +13,16 @@ import (
 	. "tc-micro-idp/utils"
 )
 
-var ClientsTable []*models.Client
+var ClientsTable []models.Client
 
 func init() {
+	db.Initial()
+	time.Sleep(2 * time.Second)
+	Initial()
 
+}
+
+func Initial() {
 	var OK bool
 
 	ClientsTable, OK = db.GetClientsTable()
@@ -30,7 +38,6 @@ func init() {
 		db.Cache.Set(client.Issuer, Key, 1)
 	}
 }
-
 func Decrypt(token, issuer string) (tokenClaims *models.TokenClaim, err error) {
 	if token == "" {
 		return nil, fmt.Errorf("no valid token")

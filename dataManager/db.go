@@ -1,11 +1,14 @@
 package db
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
 	"os"
+	//"tc-micro-idp/jwt"
 	"tc-micro-idp/models"
 	. "tc-micro-idp/utils"
 	"time"
@@ -13,8 +16,8 @@ import (
 
 var (
 	dbUrl string
-	db *gorm.DB
-	err error
+	db    *gorm.DB
+	err   error
 )
 
 //var db, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true})
@@ -30,23 +33,30 @@ func init() {
 	default:
 		dbUrl = PgUrlLocal
 	}
-	db, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+	})
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	//err = db.Debug().AutoMigrate(&models.Client{},&models.User{},&models.Role{},&models.OtpAttempt{},models.BlockedPhone{},models.Client{}, models.OtpAttempt{}, models.Role{}, models.UserRole{}, models.User{}, models.UserProfile{}, models.UserCity{}, models.UsedInviteCode{}, models.Device{},models.RefreshToken{},models.AccessToken{})
-	err = db.Debug().AutoMigrate(&models.Client{},&models.User{},&models.Role{}, models.UserCity{},&models.OtpAttempt{}, models.UserRole{},models.BlockedPhone{}, models.UsedInviteCode{}, &models.Device{},models.AccessToken{},models.RefreshToken{})
+	err = db.Debug().AutoMigrate(&models.Client{}, &models.User{}, &models.Role{}, models.UserCity{}, &models.OtpAttempt{}, models.UserRole{}, models.BlockedPhone{}, models.UsedInviteCode{}, &models.Device{}, models.AccessToken{}, models.RefreshToken{})
 	if err != nil {
-		log.Println("Auto migrating error : " , err)
+		log.Fatalln("Auto migrating error : ", err)
 	}
+
+}
+
+func Initial() {
 	ok := SetClientTable(getClientsTable())
 	if !ok {
 		log.Println("Cannot set the client table")
 	}
 }
-
-func getClientsTable() (A []*models.Client) {
+func getClientsTable() (A []models.Client) {
 	err = db.Table(Clients).Order(`"Id" desc`).Model(A).Find(&A).Error
 	if err != nil {
 		log.Println(err)
@@ -56,14 +66,14 @@ func getClientsTable() (A []*models.Client) {
 	return
 }
 
-func FindClient(Issuer string) (ClientTable *models.Client) {
-	a := getClientsTable()
+func FindClient(Issuer string) (ClientTable models.Client) {
+	a, _ := GetClientsTable()
 	for _, client := range a {
 		if Issuer == client.Issuer {
 			return client
 		}
 	}
-	return nil
+	return
 }
 
 func IsBlocked(Number string) bool {
@@ -83,55 +93,41 @@ func IsBlocked(Number string) bool {
 	return false
 }
 
-func GetID(Phone string) int64 {
+func GetID(Phone string) sql.NullInt64 {
 	var otpAttempts models.OtpAttempt
-	err = db.Debug().Where(`"Phone" = ?`, Phone).Last(&otpAttempts).Error
+	err = db.Debug().Where(`"Phone" = ?`, Phone).Find(&otpAttempts).Error
 	if err != nil {
 		log.Println(err)
-		return 0
+		return sql.NullInt64{}
 	}
 	return otpAttempts.UserId
-	//log.Println(otpAttempts)
-	//if otpAttempts.UserId == 0 {
-	//	otpAttempts = models.OtpAttempt{
-	//		Base:       models.Base{
-	//			Id:           IdGenerator.Generate().Int64(),
-	//			CreationTime: time.Now().UTC(),
-	//			ModifyTime:   nil,
-	//		},
-	//		Phone:      Phone,
-	//		ClientId:   0,
-	//		Salt:       "",
-	//		IssueTime:  time.Now().UTC(),
-	//		ExpireTime: time.Now().UTC().Add(120*time.Second),
-	//		UserIp:     Ctx.IP(),
-	//		UserAgent:  Ctx.Get(UserAgent),
-	//		OtpKind:    0,
-	//	}
-	//	db.Debug().Create(otpAttempts)
-	//}
+
 }
 
 func IsOtpAttemptExceededAsync(Model *models.ChallengeInput) bool {
-	var limitationTime = time.Unix(time.Now().UTC().Unix()-int64(10*time.Minute.Seconds()),0)
+	var limitationTime = time.Unix(time.Now().UTC().Unix()-int64(10*time.Minute.Seconds()), 0)
 	var AttemptLimitationCount int64 = 3
 	otp := new(models.OtpAttempt)
 	var count int64
-	err = db.Debug().Where(`"PhoneNumber" = ? AND "IssueTime" >= ?`,Model.Phone,limitationTime).Count(&count).Error
+	err = db.Debug().Model(&models.OtpAttempt{}).Where(`"Phone" = ? AND "IssueTime" >= ?`, Model.Phone, limitationTime).Count(&count).Error
 	if err != nil {
 		log.Println(err)
 	}
-	err = db.Debug().Where(`"PhoneNumber" = ?`,Model.Phone).Order(otp.IssueTime).Last(&otp).Error
+	err = db.Debug().Where(`"Phone" = ?`, Model.Phone).Order(`"IssueTime"`).Find(&otp).Error
 	if err != nil {
-		log.Println(err)
+		log.Println("IssueTime", err)
 	}
-	if count >= AttemptLimitationCount {
+	log.Println("132")
+	if count > AttemptLimitationCount {
+		log.Println(AttemptLimitationCount, err)
 		return true
 	}
-
-	if (time.Unix(time.Now().UTC().Unix()-int64(3*time.Minute.Seconds()),0).Unix()) < otp.IssueTime.Unix() {
+	log.Println("137")
+	if (time.Unix(time.Now().UTC().Unix()-int64(3*time.Minute.Seconds()), 0).Unix()) < otp.IssueTime.Unix() {
+		log.Println("nkijb")
 		return true
 	}
+	log.Println("142")
 	return false
 }
 
@@ -142,7 +138,7 @@ func FindUserWithRoles(UserId int64, Phone string) (*models.User, []string) {
 
 	err = db.Debug().Preload("UserRoles").Model(user).Where(`"PhoneNumber" = ?`, Phone).Find(user).Error
 	log.Println("user entities:", user, "err:", err)
-	log.Println("user id : ",user.Id)
+	log.Println("user id : ", user.Id)
 	if user.Id != 0 {
 
 		err = db.Debug().Preload("Roles.Name").Model(&models.Role{}).Where(`"id" = ?`, user.UserRoles).Find(&roles).Error
@@ -156,20 +152,27 @@ func FindUserWithRoles(UserId int64, Phone string) (*models.User, []string) {
 		if err != nil {
 			log.Println("roles name error : ", err)
 		}
-		fmt.Println("b:",roles[0].Name)
+		fmt.Println("b:", roles[0].Name)
 	}
 	return user, role
 }
 
-
 func CheckInviteCode(inviteCode string) bool {
 	var inviterUserProfile string
 	if inviteCode == "" {
-		return false
+		return true
 	}
 	err = db.Debug().Table(models.UserProfile{}.TableName()).Where(`"InviteCode" = ?`).First(&inviterUserProfile).Error
 	if err != nil {
 		log.Println("user InviteCode error : ", err)
 	}
 	return inviterUserProfile != ""
+}
+
+func InsertOtpAttempt(Model *models.OtpAttempt) (err error) {
+	//Model.User = models.User{}
+	ct := context.TODO()
+	err = db.Debug().WithContext(ct).Create(Model).Error
+	log.Println("Context : ", ct.Err())
+	return
 }
