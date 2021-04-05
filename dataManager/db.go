@@ -1,11 +1,11 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log"
 	"os"
 	//"tc-micro-idp/jwt"
@@ -42,8 +42,8 @@ func init() {
 		log.Println(err)
 		return
 	}
-	//err = db.Debug().AutoMigrate(&models.Client{},&models.User{},&models.Role{},&models.OtpAttempt{},models.BlockedPhone{},models.Client{}, models.OtpAttempt{}, models.Role{}, models.UserRole{}, models.User{}, models.UserProfile{}, models.UserCity{}, models.UsedInviteCode{}, models.Device{},models.RefreshToken{},models.AccessToken{})
-	err = db.Debug().AutoMigrate(&models.Client{}, &models.User{}, &models.Role{}, models.UserCity{}, &models.OtpAttempt{}, models.UserRole{}, models.BlockedPhone{}, models.UsedInviteCode{}, &models.Device{}, models.AccessToken{}, models.RefreshToken{})
+
+	err = db.Debug().AutoMigrate(&models.Client{}, &models.User{}, &models.Role{}, &models.UserCity{}, &models.OtpAttempt{}, &models.UserRole{}, &models.BlockedPhone{}, &models.UsedInviteCode{}, &models.Device{}, &models.AccessToken{}, &models.RefreshToken{}, &models.UserProfile{})
 	if err != nil {
 		log.Fatalln("Auto migrating error : ", err)
 	}
@@ -57,7 +57,7 @@ func Initial() {
 	}
 }
 func getClientsTable() (A []models.Client) {
-	err = db.Table(Clients).Order(`"Id" desc`).Model(A).Find(&A).Error
+	err = db.Debug().Table(Clients).Order(`"Id" desc`).Model(A).Find(&A).Error
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -78,7 +78,7 @@ func FindClient(Issuer string) (ClientTable models.Client) {
 
 func IsBlocked(Number string) bool {
 	Blocked := new([]models.BlockedPhone)
-	err = db.Where(`"Number" = ?`, Number).Find(Blocked).Error
+	err = db.Debug().Where(`"Number" = ?`, Number).Find(Blocked).Error
 	if err != nil {
 		log.Print(err)
 		return false
@@ -131,7 +131,7 @@ func IsOtpAttemptExceededAsync(Model *models.ChallengeInput) bool {
 	return false
 }
 
-func FindUserWithRoles(UserId int64, Phone string) (*models.User, []string) {
+func FindUserWithRoles(UserId sql.NullInt64, Phone string) (*models.User, []string) {
 	user := new(models.User)
 	var role []string
 	var roles []models.Role
@@ -141,13 +141,13 @@ func FindUserWithRoles(UserId int64, Phone string) (*models.User, []string) {
 	log.Println("user id : ", user.Id)
 	if user.Id != 0 {
 
-		err = db.Debug().Preload("Roles.Name").Model(&models.Role{}).Where(`"id" = ?`, user.UserRoles).Find(&roles).Error
+		err = db.Debug().Preload("Roles.Name").Model(&models.Role{}).Where(`"Id" = ?`, user.UserRoles).Find(&roles).Error
 		if err != nil {
 			log.Println("user roles error : ", err)
 		}
 		fmt.Println("user roles ", roles)
 	}
-	if UserId > 0 {
+	if UserId.Valid {
 		err = db.Debug().Preload("Roles.Name").Model(&models.Role{}).Where(models.Role{}.Id, user.UserRoles).Find(&roles).Error
 		if err != nil {
 			log.Println("roles name error : ", err)
@@ -170,9 +170,52 @@ func CheckInviteCode(inviteCode string) bool {
 }
 
 func InsertOtpAttempt(Model *models.OtpAttempt) (err error) {
-	//Model.User = models.User{}
-	ct := context.TODO()
-	err = db.Debug().WithContext(ct).Create(Model).Error
-	log.Println("Context : ", ct.Err())
+	err = db.Debug().Create(Model).Error
 	return
+}
+
+func FindOtpAttempt(OtpId int64) (OtpAttempt *models.OtpAttempt, err error) {
+	OtpAttempt = new(models.OtpAttempt)
+	err = db.Debug().Where(`"Id" = ?`, OtpId).Find(OtpAttempt).Error
+	return
+}
+
+func UpdateOtpAttemptUserId(Model *models.OtpAttempt) (err error) {
+	err = db.Debug().Where(`"Id" = ?`, Model.Id).UpdateColumns(Model).Error
+	return err
+}
+
+func InsertUser(Model *models.User) (err error) {
+	err = db.Debug().Create(Model).Error
+	return
+}
+
+func InsertUserProfile(Model *models.UserProfile) (err error) {
+	err = db.Debug().Create(Model).Error
+	return
+}
+func InsertRefresh(Model *models.RefreshToken) (err error) {
+	err = db.Debug().Create(Model).Error
+	return
+}
+
+func InsertAccess(Model *models.AccessToken) (err error) {
+	err = db.Debug().Create(Model).Error
+	return
+}
+
+func LogOut(Model *models.TokenClaim) (err error) {
+	var accessToken models.AccessToken
+	err = db.Debug().Preload(clause.Associations).Where(`"AccessTokens"."Id" = ?`, Model.UserId).First(&accessToken).Error
+	accessToken.IsRevoked = true
+	accessToken.RevokeTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
+	accessToken.RefreshToken.IsRevoked = true
+	accessToken.RefreshToken.RevokeTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
+	accessToken.RefreshToken.ModifyTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
+
+	err = db.Debug().Save(&accessToken).Error
+	if err != nil {
+		log.Fatalln("Error of Saving accessToken for LogOut : ", err)
+	}
+	return err
 }

@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"os"
 	"strings"
 	"tc-micro-idp/jwt"
+	"tc-micro-idp/models"
 	. "tc-micro-idp/utils"
 )
 
@@ -16,12 +18,15 @@ func init() {
 }
 
 func TestToken(c *fiber.Ctx) error {
-	_, err := jwt.Decrypt(ExtractToken(c), c.Get(ClientKey))
+	token, err := jwt.Decrypt(ExtractToken(c), c.Get(ClientKey))
 	if err != nil {
 		return c.SendStatus(http.StatusUnauthorized)
 	}
-
-	return c.SendStatus(http.StatusOK)
+	fmt.Println(token)
+	return c.JSON(&models.ResponseModel{
+		Data: map[string]interface{}{"tokenClaims": token},
+		Code: 200,
+	})
 
 }
 

@@ -33,12 +33,14 @@ func GenerateOtp(secret string) (salt, Code string) {
 
 func IsOtpValid(Code, Salt string) (ok bool) {
 	var err error
+	log.Println("Code : ", Code, "\nSalt : ", Salt)
 	ok, err = totp.ValidateCustom(Code, Salt, time.Now().UTC(), totp.ValidateOpts{
-		Period:    140,
+		Period:    120,
 		Skew:      20,
 		Digits:    4,
 		Algorithm: otp.AlgorithmSHA1,
 	})
+	log.Println("ValidateCustom = ", ok)
 	if err != nil {
 		log.Println(err)
 		return

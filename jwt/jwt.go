@@ -1,7 +1,9 @@
 package jwt
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	jose "github.com/dvsekhvalnov/jose2go"
 	"time"
@@ -78,8 +80,15 @@ func decrypt(token, issuer string) (tokenClaims *models.TokenClaim, err error) {
 	if !newVersion {
 		tokenClaims, err = decode(token, signingKey)
 		log.Println("error decrypt:", err)
+		return
 	}
 	//tokenClaims, err = verifyToken(a, issuer)
+	if err != nil {
+		log.Println(err)
+	}
+	tokenClaims.ProtoReflect().Descriptor()
+	tokenClaims.String()
+	err = json.Unmarshal([]byte(a), tokenClaims)
 	if err != nil {
 		log.Println(err)
 	}
@@ -113,14 +122,23 @@ func SigningAndEncryptionKeyFinder(h string) (encryptingKey, signingKey []byte) 
 	return
 }
 
-func GenerateToken(payload []byte) string {
+func GenerateToken(access *models.TokenClaim, Client *models.Client) string {
 
-	encryptingKey, err := base64.StdEncoding.DecodeString(ClientsTable[PwaIndex].EncryptingKey)
-	EncryptedToken, err := jose.EncryptBytes(payload, jose.A128KW, jose.A128CBC_HS256, encryptingKey, jose.Zip(jose.DEF), jose.Headers(map[string]interface{}{"typ": "JWT", "bmn:iss": "app-pwa", TokenVersion: "v2"}))
+	encryptingKey, err := base64.StdEncoding.DecodeString(Client.EncryptingKey)
+	EncryptedToken, err := jose.Encrypt(access.String(), Client.Alg, Client.Enc, encryptingKey, jose.Zip(jose.DEF), jose.Headers(map[string]interface{}{"typ": "JWT", "tc:iss": Client.Issuer, TokenVersion: "v1"}))
 	if err != nil {
 		log.Println(err)
 		return ""
 	}
 	log.Println(EncryptedToken)
 	return EncryptedToken
+}
+
+func GenerateRefreshToken() string {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
 }

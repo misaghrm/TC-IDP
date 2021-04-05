@@ -48,6 +48,7 @@ const (
 	Roles         = "Roles"
 	XScopeToken   = "X-Scope-Token"
 	IssuerHeader  = "tc:iss"
+	EulaVersion   = "1"
 
 	DomainProd = "https://napi.tazminchi.com/"
 	DomainDev  = "https://dev.api.baman.club/"
@@ -67,7 +68,6 @@ const (
 	Accv       = "bmn:accv"
 	Dvid       = "bmn:dvid"
 	Aps        = "bmn:aps"
-	Role       = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
 	Aud        = "aud"
 	Exp        = "exp"
 	Nbf        = "nbf"

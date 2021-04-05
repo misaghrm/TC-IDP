@@ -10,12 +10,11 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.JSON("It Works!")
 	})
-
 	challenge := api.Group("/token")
 	challenge.Post("/challenge", handlers.ChallengeToken)
-	//challenge.Post("/verify")
+	challenge.Post("/verify", handlers.Verify)
 	//challenge.Post("/refresh")
-	//challenge.Get("/logout")
+	challenge.Get("/logout", handlers.LogOut)
 	challenge.Get("/test", handlers.TestToken)
 
 }
