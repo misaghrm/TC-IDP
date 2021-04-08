@@ -14,7 +14,7 @@ func SendOtpCode(Phone string, OtpCode string, AppSignatureHash string) {
 		Type: kavenegar.Type_VerifyLookup_Sms,
 	}
 	log.Println("Kavehnegar 1 ")
-	if res, err := api.Verify.Lookup("0"+Phone, "verify", OtpCode, params); err != nil {
+	if _, err := api.Verify.Lookup("0"+Phone, "verify", OtpCode, params); err != nil {
 		switch err := err.(type) {
 		case *kavenegar.APIError:
 			log.Println(err.Error())
@@ -24,12 +24,8 @@ func SendOtpCode(Phone string, OtpCode string, AppSignatureHash string) {
 			log.Println(err.Error())
 		}
 	} else {
-		log.Println("MessageID 	= ", res.MessageID)
-		log.Println("Status    	= ", res.Status)
 		//...
 	}
-	log.Println("Kavehnegar 2 ")
-
 }
 
 //func SendOtpCode (Phone string,OtpCode string,AppSignatureHash string) {

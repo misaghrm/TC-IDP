@@ -17,4 +17,7 @@ func SetupRoutes(app *fiber.App) {
 	challenge.Get("/logout", handlers.LogOut)
 	challenge.Get("/test", handlers.TestToken)
 
+	profile := api.Group("/userprofile")
+	profile.Get("/updateAvatarFileId", handlers.UpdateAvatar)
+
 }

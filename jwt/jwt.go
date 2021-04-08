@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	jose "github.com/dvsekhvalnov/jose2go"
+	"strings"
 	"time"
 
 	//"golang.org/x/oauth2/jwt"
@@ -32,7 +33,6 @@ func Initial() {
 		log.Println("Client table does not exist in cache")
 	}
 	log.Println(ClientsTable)
-
 	for _, client := range ClientsTable {
 		var Key [][]byte
 		e, s := SigningAndEncryptionKeyFinder(client.Issuer)
@@ -60,15 +60,13 @@ func decrypt(token, issuer string) (tokenClaims *models.TokenClaim, err error) {
 			return nil
 		}
 		encryptionKey, signingKey = (key).([][]byte)[EncryptingKeyIndex], (key).([][]byte)[SigningKeyIndex]
-		log.Println("encryptionKey:", encryptionKey)
 		if i, ok := header[TokenVersion]; ok {
-			if i.(string) == "v2" {
+			if i.(string) == "v1" {
 				newVersion = true
 				return encryptionKey
 			}
 		}
 		token, _, err = jose.Decode(token, encryptionKey)
-		log.Println("error decryptttttt:", err, "\n", token)
 		if err != nil {
 			log.Println("error decrypt:", err, "\n", token)
 			return encryptionKey
@@ -86,11 +84,9 @@ func decrypt(token, issuer string) (tokenClaims *models.TokenClaim, err error) {
 	if err != nil {
 		log.Println(err)
 	}
-	tokenClaims.ProtoReflect().Descriptor()
-	tokenClaims.String()
-	err = json.Unmarshal([]byte(a), tokenClaims)
+	tokenClaims, err = WrapTokenString(a)
 	if err != nil {
-		log.Println(err)
+		log.Println("WrapTokenString : \n", err)
 	}
 	return
 }
@@ -141,4 +137,31 @@ func GenerateRefreshToken() string {
 		return ""
 	}
 	return base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
+}
+
+func WrapTokenString(a string) (tokenClaims *models.TokenClaim, err error) {
+	tokenClaims = new(models.TokenClaim)
+	a = "{" + a + "}"
+	a = strings.ReplaceAll(a, "TokenId", "\n"+`"TokenId"`)
+	a = strings.ReplaceAll(a, "IssuedAt", ",\n"+`"IssuedAt"`)
+	a = strings.ReplaceAll(a, "UserId", ",\n"+`"UserId"`)
+	a = strings.ReplaceAll(a, "Phone", ",\n"+`"Phone"`)
+	a = strings.ReplaceAll(a, "RefreshVersion", ",\n"+`"RefreshVersion"`)
+	a = strings.ReplaceAll(a, "EulaVersion", ",\n"+`"EulaVersion"`)
+	a = strings.ReplaceAll(a, "LifeTime", ",\n"+`"LifeTime"`)
+	a = strings.ReplaceAll(a, "AccessVersion", ",\n"+`"AccessVersion"`)
+	a = strings.ReplaceAll(a, "DeviceId", ",\n"+`"DeviceId"`)
+	a = strings.ReplaceAll(a, "Audience", ",\n"+`"Audience"`)
+	a = strings.ReplaceAll(a, "Expires", ",\n"+`"Expires"`)
+	a = strings.ReplaceAll(a, "NotBefore", ",\n"+`"NotBefore"`)
+	a = strings.ReplaceAll(a, "Issuer", ",\n"+`"Issuer"`)
+	a = strings.ReplaceAll(a, "AppSource", ",\n"+`"AppSource"`)
+	a = strings.ReplaceAll(a, "Roles", ",\n"+`"Roles"`)
+	a = strings.ReplaceAll(a, "CallBackId", ",\n"+`"CallBackId"`)
+	a = strings.ReplaceAll(a, "SessionId", ",\n"+`"SessionId"`)
+	//a = strings.ReplaceAll(a,"  "," ,\n")
+
+	log.Println("token wrapped : \n", a)
+	err = json.Unmarshal([]byte(a), &tokenClaims)
+	return
 }

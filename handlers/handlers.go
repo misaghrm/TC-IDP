@@ -12,8 +12,7 @@ import (
 )
 
 func init() {
-	switch os.Getenv("ENV") {
-
+	switch os.Getenv(ENV) {
 	}
 }
 
@@ -27,7 +26,6 @@ func TestToken(c *fiber.Ctx) error {
 		Data: map[string]interface{}{"tokenClaims": token},
 		Code: 200,
 	})
-
 }
 
 // ExtractToken read the token from the request header

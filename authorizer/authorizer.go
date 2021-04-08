@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"tc-micro-idp/jwt"
-	"tc-micro-idp/dataManager"
-	. "tc-micro-idp/models"
 	"strings"
+	"tc-micro-idp/dataManager"
+	"tc-micro-idp/jwt"
+	. "tc-micro-idp/models"
 )
 
 type Server struct {

@@ -27,7 +27,6 @@ var newId = publicFunctions.IdGenerator.Generate
 
 func ChallengeToken(c *fiber.Ctx) error {
 	Input := new(models.ChallengeInput)
-
 	if err := c.BodyParser(Input); err != nil {
 		return err
 	}
@@ -55,9 +54,7 @@ func ChallengeToken(c *fiber.Ctx) error {
 			Message: "اپلیکیشن شما ناشناخته است.",
 		})
 	}
-
 	UserId := db.GetID(Input.Phone)
-
 	if !UserId.Valid {
 		if Client.CanRegister {
 			return RegisterChallenge(c, Input)
@@ -69,9 +66,7 @@ func ChallengeToken(c *fiber.Ctx) error {
 			Message: "It is not possible to register user in this client",
 		})
 	}
-
 	return LoginChallenge(c, Input)
-
 }
 
 func RegisterChallenge(c *fiber.Ctx, Input *models.ChallengeInput) (err error) {
@@ -82,12 +77,10 @@ func RegisterChallenge(c *fiber.Ctx, Input *models.ChallengeInput) (err error) {
 			Message: "تعداد درخواست بیش از حد مجاز است.",
 		})
 	}
-
 	isCodeValid := db.CheckInviteCode(Input.InviteCode)
 	if !isCodeValid {
-		return c.JSON("")
+		return c.SendStatus(http.StatusBadRequest)
 	}
-
 	salt, otp := publicFunctions.GenerateOtp(publicFunctions.StringGenerator(Input.Phone))
 	utils.SendOtpCode(Input.Phone, otp, Input.AppSignatureHash)
 
@@ -95,16 +88,16 @@ func RegisterChallenge(c *fiber.Ctx, Input *models.ChallengeInput) (err error) {
 	var otpAttempt = models.OtpAttempt{
 		Id:           newId().Int64(),
 		CreationTime: time.Now().UTC(),
-		UserId:       sql.NullInt64{},
-		Phone:        Input.Phone,
-		ClientId:     Client.Id,
-		Client:       models.Client{},
-		Salt:         salt,
-		IssueTime:    time.Now().UTC(),
-		ExpireTime:   time.Now().UTC().Add(120 * time.Second),
-		UserIp:       c.IP(),
-		UserAgent:    c.Get(utils.UserAgent),
-		OtpKind:      models.Kind(2),
+		//UserId:       sql.NullInt64{},
+		Phone:      Input.Phone,
+		ClientId:   Client.Id,
+		Client:     models.Client{},
+		Salt:       salt,
+		IssueTime:  time.Now().UTC(),
+		ExpireTime: time.Now().UTC().Add(120 * time.Second),
+		UserIp:     c.IP(),
+		UserAgent:  c.Get(utils.UserAgent),
+		OtpKind:    models.Kind(2),
 	}
 
 	if err = db.InsertOtpAttempt(&otpAttempt); err != nil {
@@ -115,10 +108,8 @@ func RegisterChallenge(c *fiber.Ctx, Input *models.ChallengeInput) (err error) {
 	return c.JSON(models.ResponseModel{
 		Data: map[string]interface{}{
 			utils.OtpId: otpAttempt.Id,
-			"otp":       otp,
 		},
-		Code:    200,
-		Message: "",
+		Code: http.StatusOK,
 	})
 }
 
@@ -168,11 +159,9 @@ func LoginChallenge(c *fiber.Ctx, Input *models.ChallengeInput) (err error) {
 func Verify(c *fiber.Ctx) error {
 	UserRole := new([]models.UserRole)
 	Input := new(models.VerifyInput)
-	log.Println("verify 1")
 	if err := c.BodyParser(Input); err != nil {
 		return err
 	}
-	log.Println("verify 2")
 	if Input.Phone = utils.CleanUpPhone(Input.Phone); Input.Phone == "" {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
@@ -180,7 +169,6 @@ func Verify(c *fiber.Ctx) error {
 			Message: "شماره همراه اشتباه است.",
 		})
 	}
-	log.Println("verify 3")
 	if db.IsBlocked(Input.Phone) {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
@@ -188,10 +176,9 @@ func Verify(c *fiber.Ctx) error {
 			Message: "شماره همراه اشتباه است.",
 		})
 	}
-	log.Println("verify 4")
 	var ok bool
 	Client, ok = db.CanLogin(c.Get(utils.ClientKey))
-	log.Println("verify 5")
+
 	if !ok {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
@@ -199,7 +186,26 @@ func Verify(c *fiber.Ctx) error {
 			Message: "اپلیکیشن شما ناشناخته است.",
 		})
 	}
-	log.Println("verify 6")
+
+	if strings.Contains(Client.AccessTokenLifeTime, " day") {
+		Client.AccessTokenLifeTime = strings.ReplaceAll(Client.AccessTokenLifeTime, " days", "")
+		Client.AccessTokenLifeTime = strings.ReplaceAll(Client.AccessTokenLifeTime, " day", "")
+		a, _ := strconv.ParseInt(Client.AccessTokenLifeTime, 10, 64)
+		Client.AccessTokenLifeTime = fmt.Sprintf("%vh", 24*a)
+		log.Println("AccessTokenLifeTime : ", Client.AccessTokenLifeTime)
+	}
+	if strings.Contains(Client.RefreshTokenLifeTime, " day") {
+		Client.RefreshTokenLifeTime = strings.ReplaceAll(Client.RefreshTokenLifeTime, " days", "")
+		Client.RefreshTokenLifeTime = strings.ReplaceAll(Client.RefreshTokenLifeTime, " day", "")
+		a, _ := strconv.ParseInt(Client.RefreshTokenLifeTime, 10, 64)
+		Client.RefreshTokenLifeTime = fmt.Sprintf("%vh", 24*a)
+		log.Println("RefreshTokenLifeTime : ", Client.RefreshTokenLifeTime)
+	}
+	//Client.AccessTokenLifeTime = strings.ReplaceAll(Client.AccessTokenLifeTime," days","d")
+	//Client.AccessTokenLifeTime = strings.ReplaceAll(Client.AccessTokenLifeTime," day","d")
+	//Client.RefreshTokenLifeTime = strings.ReplaceAll(Client.RefreshTokenLifeTime," days","d")
+	//Client.RefreshTokenLifeTime = strings.ReplaceAll(Client.RefreshTokenLifeTime," day","d")
+	//
 	log.Println(Input.OtpId)
 	otpAttempt, err := db.FindOtpAttempt(Input.OtpId)
 	if err != nil {
@@ -209,7 +215,6 @@ func Verify(c *fiber.Ctx) error {
 			Message: "درخواستی برای این کاربر پیدا نشد.",
 		})
 	}
-	log.Println("verify 7")
 	if otpAttempt == nil || otpAttempt.Phone != Input.Phone {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
@@ -217,7 +222,6 @@ func Verify(c *fiber.Ctx) error {
 			Message: "درخواستی برای این کاربر پیدا نشد.",
 		})
 	}
-	log.Println("verify 8")
 	if otpAttempt.ExpireTime.Unix() < time.Now().UTC().Unix() {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
@@ -225,19 +229,15 @@ func Verify(c *fiber.Ctx) error {
 			Message: "کد شما منقضی شده است.",
 		})
 	}
-	log.Println("verify 9")
-	if ok := publicFunctions.IsOtpValid(Input.Code, otpAttempt.Salt); !ok {
+	if ok = publicFunctions.IsOtpValid(Input.Code, otpAttempt.Salt); !ok {
 		return c.JSON(models.ResponseModel{
 			Data:    nil,
 			Code:    utils.Error16006WrongOtpCode,
 			Message: "کد اشتباه است.",
 		})
 	}
-	log.Println("verify 10")
 	user, roles := db.FindUserWithRoles(otpAttempt.UserId, Input.Phone)
-	log.Println("verify 11")
 	if !otpAttempt.UserId.Valid && user.Id == 0 {
-		log.Println("verify 12")
 		user = &models.User{
 			Id:            newId().Int64(),
 			CreationTime:  time.Now().UTC(),
@@ -246,26 +246,22 @@ func Verify(c *fiber.Ctx) error {
 			UserRoles:     *UserRole,
 			RefreshTokens: nil,
 		}
-		log.Println("verify 13")
 		err = db.InsertUser(user)
 		if err != nil {
 			log.Fatalln("InsertUser error : ", err)
 			return err
 		}
-		log.Println("verify 14")
 		var userProfile = &models.UserProfile{
 			Id:           newId().Int64(),
 			CreationTime: time.Now().UTC(),
 			UserId:       user.Id,
 			InviteCode:   publicFunctions.InviteCodeGenerator(user.PhoneNumber),
 		}
-		log.Println("verify 15")
 		err = db.InsertUserProfile(userProfile)
 		if err != nil {
 			log.Fatalln("InsertUserProfile error : ", err)
 			return err
 		}
-		log.Println("verify 16")
 		otpAttempt.UserId = sql.NullInt64{
 			Int64: user.Id,
 			Valid: true,
@@ -276,34 +272,26 @@ func Verify(c *fiber.Ctx) error {
 			log.Fatalln("UpdateOtpAttemptUserId : ", err)
 		}
 	}
-
-	log.Println("verify 17")
 	user.LastLoginTime = time.Now().UTC()
-
 	if len(Client.DefaultRoles) > 0 {
-		log.Println("verify 18")
 		a := strings.Split(Client.DefaultRoles, ",")
 		for _, defaultRole := range a {
 			for _, m := range RoleList {
-
 				if defaultRole == m.Name {
 					*UserRole = append(*UserRole, models.UserRole{
 						UserId: user.Id,
-						RoleId: m.Id,
+						RoleId: m.Id.Int64,
 					})
 				}
 			}
 		}
-		log.Println("verify 19")
 	}
-	log.Println("verify 20")
 	var refresh = jwt.GenerateRefreshToken()
-	d, err := time.ParseDuration("720h")
+	d, err := time.ParseDuration(Client.RefreshTokenLifeTime)
 	if err != nil {
 		log.Fatalln("ParseDuration error : ", err)
 	}
 	log.Println("Duration of refresh token life time : ", d)
-	log.Println("verify 21")
 	var refreshToken = &models.RefreshToken{}
 	refreshtokenid := sql.NullInt64{
 		Int64: newId().Int64(),
@@ -325,7 +313,6 @@ func Verify(c *fiber.Ctx) error {
 		Token:      refresh,
 		IssueTime:  time.Now().UTC(),
 		ExpireTime: time.Now().UTC().Add(d),
-		//DeviceId: deviceid,
 		Device: models.Device{
 			Id:             deviceid,
 			CreationTime:   time.Now().UTC(),
@@ -343,18 +330,20 @@ func Verify(c *fiber.Ctx) error {
 			//AppSource:      models.AppSource(Input.AppSource),
 		},
 	}
-	//device :=
+
+	d, err = time.ParseDuration(Client.AccessTokenLifeTime)
+	if err != nil {
+		log.Fatalln("ParseDuration error : ", err)
+	}
+
 	var accessToken = &models.AccessToken{
 		Id:             newId().Int64(),
 		CreationTime:   time.Now().UTC(),
 		RefreshTokenId: refreshToken.Id,
 		IssueTime:      time.Now().UTC(),
-		ExpireTime:     time.Now().UTC(),
+		ExpireTime:     time.Now().UTC().Add(d),
 	}
-	d, err = time.ParseDuration("24h")
-	if err != nil {
-		log.Fatalln("ParseDuration error : ", err)
-	}
+
 	var Tokenclaim = &models.TokenClaim{
 		TokenId:        strconv.FormatInt(accessToken.Id, 10),
 		IssuedAt:       time.Now().UTC().String(),
@@ -375,22 +364,16 @@ func Verify(c *fiber.Ctx) error {
 
 	var access = jwt.GenerateToken(Tokenclaim, &Client)
 	accessToken.Token = access
-	log.Println("verify 22")
-
 	err = db.InsertRefresh(refreshToken)
 	if err != nil {
 		log.Fatalln("InsertRefresh error : ", err)
 		return err
 	}
-	log.Println("verify 23")
-
 	err = db.InsertAccess(accessToken)
 	if err != nil {
 		log.Fatalln("InsertAccess error : ", err)
 		return err
 	}
-	log.Println("verify 24")
-
 	return c.JSON(&models.ResponseModel{
 		Data: map[string]interface{}{
 			"accessToken":  access,
@@ -406,9 +389,11 @@ func LogOut(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(http.StatusUnauthorized)
 	}
+
 	err = db.LogOut(tokenClaims)
+
 	if err != nil {
-		log.Println()
+		log.Println(err)
 		return c.JSON(&models.ResponseModel{
 			Data:    map[string]interface{}{"value": false},
 			Code:    500,

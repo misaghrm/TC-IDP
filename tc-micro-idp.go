@@ -12,7 +12,6 @@ import (
 	"tc-micro-idp/authorizer"
 	"tc-micro-idp/models"
 	"tc-micro-idp/router"
-	"tc-micro-idp/utils/publicFunctions"
 )
 
 //var app *fiber.App
@@ -21,8 +20,6 @@ var err error
 var lis net.Listener
 
 func main() {
-
-	log.Println("ID : ", publicFunctions.IdGenerator.Generate().Int64())
 	app := fiber.New(fiber.Config{
 		Prefork: false,
 	})

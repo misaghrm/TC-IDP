@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"log"
 	"os"
+	"strconv"
+
 	//"tc-micro-idp/jwt"
 	"tc-micro-idp/models"
 	. "tc-micro-idp/utils"
@@ -141,7 +142,7 @@ func FindUserWithRoles(UserId sql.NullInt64, Phone string) (*models.User, []stri
 	log.Println("user id : ", user.Id)
 	if user.Id != 0 {
 
-		err = db.Debug().Preload("Roles.Name").Model(&models.Role{}).Where(`"Id" = ?`, user.UserRoles).Find(&roles).Error
+		err = db.Debug().Preload(`"Roles"."Name"`).Model(&models.Role{}).Where(`"Id" = ?`, -12).Find(&roles).Error
 		if err != nil {
 			log.Println("user roles error : ", err)
 		}
@@ -206,9 +207,15 @@ func InsertAccess(Model *models.AccessToken) (err error) {
 
 func LogOut(Model *models.TokenClaim) (err error) {
 	var accessToken models.AccessToken
-	err = db.Debug().Preload(clause.Associations).Where(`"AccessTokens"."Id" = ?`, Model.UserId).First(&accessToken).Error
+	accId, _ := strconv.Atoi(Model.AccessVersion)
+	err = db.Debug().Where(`"AccessTokens"."Id" = ?`, accId).Find(&accessToken).Error
+	log.Println("Loaded accessToken entity : ", accessToken)
+	err = db.Debug().Where(`"RefreshTokens"."Id" = ?`, accessToken.RefreshTokenId).Find(&accessToken.RefreshToken).Error
+	log.Println("Loaded accessToken entity : ", accessToken)
 	accessToken.IsRevoked = true
 	accessToken.RevokeTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
+	accessToken.ModifyTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
+
 	accessToken.RefreshToken.IsRevoked = true
 	accessToken.RefreshToken.RevokeTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
 	accessToken.RefreshToken.ModifyTime = sql.NullTime{Time: time.Now().UTC(), Valid: true}
@@ -217,5 +224,34 @@ func LogOut(Model *models.TokenClaim) (err error) {
 	if err != nil {
 		log.Fatalln("Error of Saving accessToken for LogOut : ", err)
 	}
+	err = db.Debug().Save(&accessToken.RefreshToken).Error
+	if err != nil {
+		log.Fatalln("Error of Saving accessToken for LogOut : ", err)
+	}
+
 	return err
+}
+func UpdateAvatarFileId(UserId int64, FileId int64) (err error) {
+	var user models.User
+	err = db.Debug().Where(`"Id" = ?`).Find(&user).Error
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	if user.Id != UserId {
+		return fmt.Errorf("user does not exist")
+	}
+	var userProfile = &models.UserProfile{
+		ModifyTime: sql.NullTime{
+			Time:  time.Now().UTC(),
+			Valid: true,
+		},
+		ProfileImageFileId: FileId,
+	}
+	err = db.Debug().Where(`"UserId" = ?`, UserId).Updates(&userProfile).Error
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return
 }
