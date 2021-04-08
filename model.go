@@ -5,22 +5,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	//"tc-micro-idp/utils"
 	"time"
+)
+
+const (
+	UserCities       = "UserCities"
+	UsedInvitedCodes = "UsedInvitedCodes"
+	UserProfiles     = "UserProfiles"
+	Devices          = "Devices"
+	AccessTokens     = "AccessTokens"
+	RefreshTokens    = "RefreshTokens"
+	BlockedPhones    = "BlockedPhones"
+	Clients          = "Clients"
+	OtpAttempts      = "OtpAttempts"
+	UserRoles        = "UserRoles"
+	Users            = "Users"
+	Roles            = "Roles"
 )
 
 var Domain string
 
 func init() {
-	//switch os.Getenv("ENV") {
-	//case utils.Test:
-	//	Domain = utils.DomainTest
-	//case utils.Dev:
-	//	Domain = utils.DomainDev
-	//case utils.Prod:
-	//	Domain = utils.DomainProd
+	//switch os.Getenv(ENV) {
+	//case Test:
+	//	Domain = DomainTest
+	//case Dev:
+	//	Domain = DomainDev
+	//case Prod:
+	//	Domain = DomainProd
 	//default:
-	//	Domain = utils.DomainProd
+	//	Domain = DomainProd
 	//}
 }
 
@@ -65,7 +79,7 @@ type BlockedPhone struct {
 }
 
 func (BlockedPhone) TableName() string {
-	return "BlockedPhones"
+	return BlockedPhones
 }
 
 type Client struct {
@@ -82,8 +96,8 @@ type Client struct {
 	CanLogin                 bool         `gorm:"column:CanLogin"`
 	Alg                      string       `gorm:"column:Alg"`
 	Enc                      string       `gorm:"column:Enc"`
-	AccessTokenLifeTime      string       `gorm:"column:AccessTokenLifeTime"`
-	RefreshTokenLifeTime     string       `gorm:"column:RefreshTokenLifeTime"`
+	AccessTokenLifeTime      string       `gorm:"column:AccessTokenLifeTime;type:interval"`
+	RefreshTokenLifeTime     string       `gorm:"column:RefreshTokenLifeTime;type:interval"`
 	SupportCompression       bool         `gorm:"column:SupportCompression"`
 	SigningKey               string       `gorm:"column:SigningKey"`
 	EncryptingKey            string       `gorm:"column:EncryptingKey"`
@@ -92,7 +106,7 @@ type Client struct {
 }
 
 func (Client) TableName() string {
-	return "Clients"
+	return Clients
 }
 
 //func (c Client) Value() (driver.Value, error) {
@@ -131,7 +145,7 @@ type OtpAttempt struct {
 }
 
 func (OtpAttempt) TableName() string {
-	return "OtpAttempts"
+	return OtpAttempts
 }
 
 type Kind byte
@@ -149,9 +163,9 @@ func (k Kind) String() string {
 	}
 }
 
-func (TokenClaim) TableName() string {
-	return "TokenClaims"
-}
+//func (TokenClaim) TableName() string {
+//	return "TokenClaims"
+//}
 
 func GetJson(a *TokenClaim) (payload []byte) {
 	payload, _ = json.Marshal(a)
@@ -172,78 +186,78 @@ type UserRole struct {
 }
 
 func (UserRole) TableName() string {
-	return "UserRoles"
+	return UserRoles
 }
 
 type Role struct {
-	Id           int64        `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
-	CreationTime time.Time    `gorm:"column:CreationTime;type:timestamp"`
-	ModifyTime   sql.NullTime `gorm:"column:ModifyTime;type:timestamp"`
+	Id           sql.NullInt64 `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
+	CreationTime time.Time     `gorm:"column:CreationTime;type:timestamp"`
+	ModifyTime   sql.NullTime  `gorm:"column:ModifyTime;type:timestamp"`
 	UserRoles    []UserRole
-	Name         string `gorm:"column:Name;" ;json:"name"`
-	Title        string `gorm:"column:Title;" ;json:"title"`
-	IsInHouse    bool   `gorm:"column:IsInHouse;" ;json:"isInHouse"`
-	Visible      bool   `gorm:"column:Visible;" ;json:"visible"`
+	Name         string `gorm:"column:Name;" json:"name"`
+	Title        string `gorm:"column:Title;" json:"title"`
+	IsInHouse    bool   `gorm:"column:IsInHouse;" json:"isInHouse"`
+	Visible      bool   `gorm:"column:Visible;" json:"visible"`
 }
 
 func (Role) TableName() string {
-	return "Roles"
+	return Roles
 }
 
 type User struct {
 	Id            int64          `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime  time.Time      `gorm:"column:CreationTime;type:timestamp"`
 	ModifyTime    sql.NullTime   `gorm:"column:ModifyTime;type:timestamp"`
-	PhoneNumber   string         `gorm:"uniqueIndex;column:PhoneNumber;type:bpchar(10);" ;json:"phoneNumber"`
-	UserProfileId int64          `gorm:"column:UserProfileId" ;json:"userProfileId"`
-	LastLoginTime time.Time      `gorm:"column:LastLoginTime;type:timestamp" ;json:"lastLoginTime"`
+	PhoneNumber   string         `gorm:"uniqueIndex;column:PhoneNumber;type:bpchar(10);" json:"phoneNumber"`
+	UserProfileId int64          `gorm:"column:UserProfileId" json:"userProfileId"`
+	LastLoginTime time.Time      `gorm:"column:LastLoginTime;type:timestamp" json:"lastLoginTime"`
 	UserRoles     []UserRole     //`gorm:"many2many:UserRoles;"`
-	RefreshTokens []RefreshToken //`gorm:"many2many:RefreshTokens" ;json:"refreshTokens"`
-	OtpAttempts   []*OtpAttempt  //`gorm:"many2many:OtpAttempts" ;json:"otpAttempts"`
+	RefreshTokens []RefreshToken //`gorm:"many2many:RefreshTokens" json:"refreshTokens"`
+	OtpAttempts   []*OtpAttempt  //`gorm:"many2many:OtpAttempts" json:"otpAttempts"`
 	UserCity      UserCity       //`gorm:"foreignKey:FK_UserCities_Users_UserId"`
 }
 
 func (User) TableName() string {
-	return "Users"
+	return Users
 }
 
 type RefreshToken struct {
-	Id           int64         `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id;"`
-	CreationTime time.Time     `gorm:"column:CreationTime;type:timestamp"`
-	ModifyTime   sql.NullTime  `gorm:"column:ModifyTime;type:timestamp"`
-	UserId       int64         `gorm:"column:UserId" ;json:"userId"`
-	User         User          `gorm:"foreignKey:UserId"`
-	ClientId     int64         `gorm:"column:ClientId" ;json:"clientId"`
-	Client       Client        `gorm:"foreignKey:ClientId"`
-	Token        string        `gorm:"column:Token" ;json:"token"`
-	IssueTime    time.Time     `gorm:"column:IssueTime;type:timestamp" ;json:"issueTime"`
-	ExpireTime   time.Time     `gorm:"column:ExpireTime;type:timestamp" ;json:"expireTime"`
-	AccessTokens []AccessToken //`gorm:"many2many:AccessTokens;"`
-	DeviceId     sql.NullInt64 `gorm:"column:DeviceId" ;json:"deviceId"`
+	Id           int64        `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id;"`
+	CreationTime time.Time    `gorm:"column:CreationTime;type:timestamp"`
+	ModifyTime   sql.NullTime `gorm:"column:ModifyTime;type:timestamp"`
+	UserId       int64        `gorm:"column:UserId" json:"userId"`
+	User         User         `gorm:"foreignKey:UserId"`
+	ClientId     int64        `gorm:"column:ClientId" json:"clientId"`
+	Client       Client       `gorm:"foreignKey:ClientId"`
+	Token        string       `gorm:"column:Token" json:"token"`
+	IssueTime    time.Time    `gorm:"column:IssueTime;type:timestamp" json:"issueTime"`
+	ExpireTime   time.Time    `gorm:"column:ExpireTime;type:timestamp" json:"expireTime"`
+	AccessTokens []AccessToken
+	DeviceId     sql.NullInt64 `gorm:"column:DeviceId" json:"deviceId"`
 	Device       Device        `gorm:"foreignKey:DeviceId"`
-	IsRevoked    bool          `gorm:"column:IsRevoked" ;json:"isRevoked"`
-	RevokeTime   sql.NullTime  `gorm:"column:RevokeTime;type:timestamp" ;json:"revokeTime"`
+	IsRevoked    bool          `gorm:"column:IsRevoked" json:"isRevoked"`
+	RevokeTime   sql.NullTime  `gorm:"column:RevokeTime;type:timestamp" json:"revokeTime"`
 }
 
 func (RefreshToken) TableName() string {
-	return "RefreshTokens"
+	return RefreshTokens
 }
 
 type AccessToken struct {
 	Id             int64        `gorm:"uniqueIndex;primaryKey;autoIncrement:false;column:Id"`
 	CreationTime   time.Time    `gorm:"column:CreationTime;type:timestamp"`
 	ModifyTime     sql.NullTime `gorm:"column:ModifyTime;type:timestamp"`
-	RefreshTokenId int64        `gorm:"column:RefreshTokenId" ;json:"refreshTokenId"`
+	RefreshTokenId int64        `gorm:"column:RefreshTokenId" json:"refreshTokenId"`
 	RefreshToken   RefreshToken `gorm:"foreignKey:RefreshTokenId"`
-	Token          string       `gorm:"column:Token" ;json:"token"`
-	IssueTime      time.Time    `gorm:"column:IssueTime;type:timestamp" ;json:"issueTime"`
-	ExpireTime     time.Time    `gorm:"column:ExpireTime;type:timestamp" ;json:"expireTime"`
-	IsRevoked      bool         `gorm:"column:IsRevoked" ;json:"isRevoked"`
-	RevokeTime     sql.NullTime `gorm:"column:RevokeTime;type:timestamp" ;json:"revokeTime"`
+	Token          string       `gorm:"column:Token" json:"token"`
+	IssueTime      time.Time    `gorm:"column:IssueTime;type:timestamp" json:"issueTime"`
+	ExpireTime     time.Time    `gorm:"column:ExpireTime;type:timestamp" json:"expireTime"`
+	IsRevoked      bool         `gorm:"column:IsRevoked" json:"isRevoked"`
+	RevokeTime     sql.NullTime `gorm:"column:RevokeTime;type:timestamp" json:"revokeTime"`
 }
 
 func (AccessToken) TableName() string {
-	return "AccessTokens"
+	return AccessTokens
 }
 
 type Device struct {
@@ -251,21 +265,21 @@ type Device struct {
 	CreationTime   time.Time     `gorm:"column:CreationTime;type:timestamp"`
 	ModifyTime     sql.NullTime  `gorm:"column:ModifyTime;type:timestamp"`
 	RefreshToken   []RefreshToken
-	UserIp         string    `gorm:"column:UserIp" ;json:"userIp"`
-	UserAgent      string    `gorm:"column:UserAgent" ;json:"userAgent"`
-	FireBaseId     string    `gorm:"column:FireBaseId" ;json:"fireBaseId"`
-	YandexId       string    `gorm:"column:YandexId" ;json:"yandexId"`
-	Imei           string    `gorm:"column:Imei" ;json:"imei"`
-	PhoneModel     string    `gorm:"column:PhoneModel" ;json:"phoneModel"`
-	AndroidVersion string    `gorm:"column:AndroidVersion" ;json:"androidVersion"`
-	ScreenSize     string    `gorm:"column:ScreenSize" ;json:"screenSize"`
-	AppVersion     string    `gorm:"column:AppVersion" ;json:"appVersion"`
-	SimOperator    string    `gorm:"column:SimOperator" ;json:"simOperator"`
-	AppSource      AppSource `gorm:"column:AppSource" ;json:"appSource"`
+	UserIp         string    `gorm:"column:UserIp" json:"userIp"`
+	UserAgent      string    `gorm:"column:UserAgent" json:"userAgent"`
+	FireBaseId     string    `gorm:"column:FireBaseId" json:"fireBaseId"`
+	YandexId       string    `gorm:"column:YandexId" json:"yandexId"`
+	Imei           string    `gorm:"column:Imei" json:"imei"`
+	PhoneModel     string    `gorm:"column:PhoneModel" json:"phoneModel"`
+	AndroidVersion string    `gorm:"column:AndroidVersion" json:"androidVersion"`
+	ScreenSize     string    `gorm:"column:ScreenSize" json:"screenSize"`
+	AppVersion     string    `gorm:"column:AppVersion" json:"appVersion"`
+	SimOperator    string    `gorm:"column:SimOperator" json:"simOperator"`
+	AppSource      AppSource `gorm:"column:AppSource" json:"appSource"`
 }
 
 func (Device) TableName() string {
-	return "Devices"
+	return Devices
 }
 
 type AppSource int
@@ -310,7 +324,7 @@ type UserProfile struct {
 }
 
 func (UserProfile) TableName() string {
-	return "UserProfiles"
+	return UserProfiles
 }
 
 type Gender byte
@@ -344,7 +358,7 @@ type UsedInviteCode struct {
 }
 
 func (UsedInviteCode) TableName() string {
-	return "UsedInvitedCodes"
+	return UsedInvitedCodes
 }
 
 type UserCity struct {
@@ -356,7 +370,7 @@ type UserCity struct {
 }
 
 func (UserCity) TableName() string {
-	return "UserCities"
+	return UserCities
 }
 
 // Trim Domain trims the domain prefix and query params if exists and implemented for Authorizer.pb.go
