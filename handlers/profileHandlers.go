@@ -15,7 +15,7 @@ func UpdateAvatar(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.SendStatus(http.StatusUnauthorized)
 	}
-	a := ctx.Query("fileid", "1")
+	a := ctx.Query("fileid", "")
 	fileId, _ := strconv.ParseInt(a, 10, 64)
 	userId, _ := strconv.ParseInt(token.UserId, 10, 64)
 	err = db.UpdateAvatarFileId(userId, fileId)
