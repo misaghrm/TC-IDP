@@ -1,41 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0be4eab6-a36f-43d0-8d9f-bc14d5ca19f7" name="Default Changelist" comment="implementing UpdateAvatarFileId">
-      <change afterPath="$PROJECT_DIR$/models/Account.pb.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/Account.proto" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/Authorizer.proto" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/MessageGrpc.pb.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/MessageGrpc.proto" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/authorizer.pb.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/model.go" afterDir="false" />
+    <list default="true" id="0be4eab6-a36f-43d0-8d9f-bc14d5ca19f7" name="Default Changelist" comment="Defining models directory">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/.idea/tc-micro-idp.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/authorizer/authorizer.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/dataManager/cache.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/dataManager/db.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/handlers/handlers.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/handlers/profileHandlers.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/handlers/tokenHandlers.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/jwt/jwt.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/router/router.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/tc-micro-idp.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/Roles.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/Test/Test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/apiCallService.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/apiErrorCode.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/constants.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/normalizer.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/publicFunctions/idGenerator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/publicFunctions/inviteCodeGenerator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/publicFunctions/stringGenerator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils/publicFunctions/totp.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Account.pb.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Account.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Authorizer.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MessageGrpc.pb.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MessageGrpc.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/authorizer.pb.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model.go" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +27,7 @@
   <component name="GOROOT" url="file://C:/Program Files/Go" />
   <component name="Git.Settings">
     <option name="PUSH_AUTO_UPDATE" value="true" />
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/models" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="ProjectId" id="1pqVP7dDqcCQfygRpEjuYfJG1T0" />
@@ -81,7 +55,7 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="go.vgo" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -140,6 +114,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/models" />
+    </ignored-roots>
     <MESSAGE value="defining entities for data base and completing challengeHandler" />
     <MESSAGE value="implementing challenge and verify and logout" />
     <MESSAGE value="implementing UpdateAvatarFileId" />
@@ -155,6 +132,11 @@
           <url>file://$PROJECT_DIR$/dataManager/db.go</url>
           <line>119</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/models/model.go</url>
+          <line>94</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
