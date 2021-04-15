@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-
-	//"tc-micro-idp/jwt"
 	"tc-micro-idp/models"
 	. "tc-micro-idp/utils"
 	"time"
@@ -231,6 +229,14 @@ func LogOut(Model *models.TokenClaim) (err error) {
 
 	return err
 }
+
+func FindRefreshToken(ClientId int64, UserId int64, DeviceId int64, RefreshToken string) (Model *models.RefreshToken, err error) {
+	Model = new(models.RefreshToken)
+	err = db.Debug().Where(`"ClientId" = ? AND "UserId" = ? AND "DeviceId" = ? AND "IsRevoked" = false`, ClientId, UserId, DeviceId).First(&Model).Error
+	log.Println("Found RefreshToken : ", Model)
+	return
+}
+
 func UpdateAvatarFileId(UserId int64, FileId int64) (err error) {
 	var user models.User
 	err = db.Debug().Where(`"Id" = ?`).Find(&user).Error

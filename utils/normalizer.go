@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"github.com/mavihq/persian"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 func CleanUpPhone(value string) string {
@@ -25,15 +25,7 @@ func CleanUpPhone(value string) string {
 }
 
 func DigitsToLatin(value string) string {
-	var chars []rune
-	for i := 0; i < len(value); i++ {
-		if unicode.IsNumber(rune(value[i])) {
-			chars = append(chars, rune(value[i]))
-		} else {
-			chars = append(chars, rune(value[i]))
-		}
-	}
-	return string(chars)
+	return persian.ToEnglishDigits(value)
 }
 
 func NormalizePersian(value string) string {

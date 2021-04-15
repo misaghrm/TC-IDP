@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -149,6 +151,28 @@ func (OtpAttempt) TableName() string {
 }
 
 type Kind byte
+
+const (
+	Register Kind = 2
+	Login    Kind = 4
+)
+
+var (
+	Kind_name = map[byte]string{
+		2: "Register",
+		4: "Login",
+	}
+	Kind_value = map[string]byte{
+		"Register": 2,
+		"Login":    4,
+	}
+)
+
+func (k Kind) Enum() *Kind {
+	P := new(Kind)
+	*P = k
+	return P
+}
 
 var OtpKinds = []string{"Register", "Login"}
 
@@ -373,8 +397,26 @@ func (UserCity) TableName() string {
 	return UserCities
 }
 
-// Trim Domain trims the domain prefix and query params if exists and implemented for Authorizer.pb.go
+// TrimDomain Trim Domain trims the domain prefix and query params if exists and implemented for Authorizer.pb.go
 func (x *Request) TrimDomain() {
 	x.URL = strings.TrimPrefix(x.URL, Domain)
 	x.URL = strings.Split(x.URL, "?")[0]
+}
+
+func (x *TokenClaim) IsLifeTimeValid() bool {
+	nbf, err := strconv.ParseInt(x.GetNotBefore(), 10, 64)
+	if err != nil {
+		log.Fatalln(err)
+		return false
+	}
+	exp, err := strconv.ParseInt(x.GetExpires(), 10, 64)
+	if err != nil {
+		log.Fatalln(err)
+		return false
+	}
+	now := time.Now().UTC().Unix()
+	if nbf > now || exp < now {
+		return false
+	}
+	return true
 }

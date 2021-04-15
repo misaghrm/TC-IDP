@@ -13,7 +13,7 @@ func SetupRoutes(app *fiber.App) {
 	challenge := api.Group("/token")
 	challenge.Post("/challenge", handlers.ChallengeToken)
 	challenge.Post("/verify", handlers.Verify)
-	//challenge.Post("/refresh")
+	challenge.Post("/refresh", handlers.Refresh)
 	challenge.Get("/logout", handlers.LogOut)
 	challenge.Get("/test", handlers.TestToken)
 

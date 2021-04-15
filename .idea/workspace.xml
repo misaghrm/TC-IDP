@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0be4eab6-a36f-43d0-8d9f-bc14d5ca19f7" name="Default Changelist" comment="Defining models directory">
+    <list default="true" id="0be4eab6-a36f-43d0-8d9f-bc14d5ca19f7" name="Default Changelist" comment="modify">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Account.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Account.proto" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Authorizer.proto" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/MessageGrpc.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/MessageGrpc.proto" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorizer.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataManager/db.go" beforeDir="false" afterPath="$PROJECT_DIR$/dataManager/db.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/handlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/profileHandlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/profileHandlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/tokenHandlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/tokenHandlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/normalizer.go" beforeDir="false" afterPath="$PROJECT_DIR$/utils/normalizer.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,6 +48,8 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="configurable..is.expanded" value="false" />
+    <property name="configurable.GoLibrariesConfigurable.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/models" />
@@ -55,7 +59,7 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="settings.editor.selected.configurable" value="http.proxy" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -120,7 +124,8 @@
     <MESSAGE value="defining entities for data base and completing challengeHandler" />
     <MESSAGE value="implementing challenge and verify and logout" />
     <MESSAGE value="implementing UpdateAvatarFileId" />
-    <option name="LAST_COMMIT_MESSAGE" value="implementing UpdateAvatarFileId" />
+    <MESSAGE value="modify" />
+    <option name="LAST_COMMIT_MESSAGE" value="modify" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -130,13 +135,28 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/dataManager/db.go</url>
-          <line>119</line>
+          <line>117</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/models/model.go</url>
-          <line>94</line>
+          <line>97</line>
           <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/dataManager/db.go</url>
+          <line>132</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/handlers/tokenHandlers.go</url>
+          <line>464</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/handlers/tokenHandlers.go</url>
+          <line>525</line>
+          <option name="timeStamp" value="12" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

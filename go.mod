@@ -8,6 +8,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.7.1
 	github.com/golang/protobuf v1.5.2
 	github.com/kavenegar/kavenegar-go v0.0.0-20200629080648-6e28263b7162
+	github.com/mavihq/persian v0.0.0-20180720112018-07dac0a5e732
 	github.com/pquerna/otp v1.3.0
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0

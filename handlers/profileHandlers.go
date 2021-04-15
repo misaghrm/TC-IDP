@@ -12,6 +12,11 @@ import (
 
 func UpdateAvatar(ctx *fiber.Ctx) error {
 	token, err := jwt.Decrypt(ExtractToken(ctx), ctx.Get(utils.ClientKey))
+	if !token.IsLifeTimeValid() {
+		if err != nil {
+			return ctx.SendStatus(http.StatusUnauthorized)
+		}
+	}
 	if err != nil {
 		return ctx.SendStatus(http.StatusUnauthorized)
 	}
